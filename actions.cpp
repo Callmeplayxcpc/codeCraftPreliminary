@@ -126,9 +126,9 @@ void write_action() {
     int n_write; // 当前时间片写入请求数量
     scanf("%d", &n_write);
     for (int i = 1; i <= n_write; i++) {
-        int id, size;
-        // 读取对象编号和对象大小，%*d 表示忽略对象标签（或其他无用信息）
-        scanf("%d%d%*d", &id, &size);
+        int id, size, tag;
+        // 读取对象编号和对象大小和对象标签
+        scanf("%d%d%d", &id, &size,&tag);
         // 初始化该对象的请求链为空
         object[id].last_request_point = 0;
         // 为每个副本处理写入

@@ -26,7 +26,8 @@ constexpr int MAX_OBJECT_NUM=100001;
 constexpr int REP_NUM=3;
 constexpr int FRE_PER_SLICING=1800;
 constexpr int EXTRA_TIME=105;
-
+constexpr int MAX_LABLE=17;
+constexpr int DIV_1800=(86400)/1800+3;
 
 using namespace std;
 
@@ -54,5 +55,8 @@ extern Object object[MAX_OBJECT_NUM];
 extern int T, M, N, V, G;
 extern int disk[MAX_DISK_NUM][MAX_DISK_SIZE];
 extern int disk_point[MAX_DISK_NUM];
+extern int fre_del[MAX_LABLE][DIV_1800];
+extern int fre_write[MAX_LABLE][DIV_1800];
+extern int fre_read[MAX_LABLE][DIV_1800];
 
 #endif // STORAGE_H
