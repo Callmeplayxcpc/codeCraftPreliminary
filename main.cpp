@@ -392,7 +392,7 @@ int main()
     fflush(stdout);
 
     for (int i = 1; i <= N; i++) {
-        disk_point[i] = 1;
+        disk_point[i] = 1; 
     }
 
     for (int t = 1; t <= T + EXTRA_TIME; t++) {
