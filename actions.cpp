@@ -11,58 +11,47 @@
 #include <iostream>
 
 using namespace std;
-
-/*
- * 函数：timestamp_action
- * 说明：读取输入中的时间片编号并回显。交互时，每个时间片开始时会先进行时间片同步。
- */
-void timestamp_action() {
+void timestamp_action()
+{ // 仅输入输出，不用优化
     int timestamp;
-    // 读取输入，忽略第一个字符串（例如 "TIMESTAMP"），直接读取后面的时间片编号
     scanf("%*s%d", &timestamp);
-    // 输出同步后的时间片，格式必须与要求一致
     printf("TIMESTAMP %d\n", timestamp);
     fflush(stdout);
 }
 
-/*
- * 函数：do_object_delete
- * 说明：辅助函数，在删除操作时将某个对象的各个块在指定硬盘中清空（标记为 0）。
- * 参数：
- *   object_unit - 数组，存储该对象各块所在的存储单元编号
- *   disk_unit   - 对应硬盘的存储单元数组
- *   size        - 对象大小（即对象块数量）
- */
-void do_object_delete(const int* object_unit, int* disk_unit, int size) {
-    for (int i = 1; i <= size; i++) {
-        // 将存储单元中存放该对象块的标记清空（0 表示空闲）
+void do_object_delete(const int *object_unit, int *disk_unit, int size)
+{ //
+    for (int i = 1; i <= size; i++)
+    {
         disk_unit[object_unit[i]] = 0;
     }
 }
 
-/*
- * 函数：delete_action
- * 说明：处理删除事件。读取删除的对象编号，取消该对象所有未完成的读请求，
- *       并将对象数据从各个硬盘上清除，同时标记对象已被删除。
- */
-void delete_action() {
-    int n_delete;      // 当前时间片需要删除的对象数量
-    int abort_num = 0; // 累计被取消的读请求数量
+set<int> disk_vector[20]; //**容器，存储每个硬盘的所有待读取单元
+int disk_size[20];        //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘
+void delete_action()
+{
+    int n_delete;                   // 当前时间片需要删除的对象数量
+    int abort_num = 0;              // 累计被取消的读请求数量
     static int _id[MAX_OBJECT_NUM]; // 存储删除对象的编号
 
     // 读取删除对象的数量
     scanf("%d", &n_delete);
-    for (int i = 1; i <= n_delete; i++) {
+    for (int i = 1; i <= n_delete; i++)
+    {
         scanf("%d", &_id[i]);
     }
 
     // 对于每个要删除的对象，遍历其相关的读请求链（通过 last_request_point 链表维护）
-    for (int i = 1; i <= n_delete; i++) {
+    for (int i = 1; i <= n_delete; i++)
+    {
         int id = _id[i];
         int current_id = object[id].last_request_point;
         // 遍历该对象对应的所有请求，统计未完成的请求
-        while (current_id != 0) {
-            if (!request[current_id].is_done) {
+        while (current_id != 0)
+        {
+            if (!request[current_id].is_done)
+            {
                 abort_num++;
             }
             current_id = request[current_id].prev_id;
@@ -72,83 +61,106 @@ void delete_action() {
     // 输出被取消的请求数量
     printf("%d\n", abort_num);
     // 再次遍历，输出每个被取消的读请求编号，并清理对象对应硬盘中的数据
-    for (int i = 1; i <= n_delete; i++) {
+    for (int i = 1; i <= n_delete; i++)
+    {
         int id = _id[i];
         int current_id = object[id].last_request_point;
-        while (current_id != 0) {
-            if (!request[current_id].is_done) {
+        while (current_id != 0)
+        {
+            if (!request[current_id].is_done)
+            {
                 printf("%d\n", current_id);
             }
             current_id = request[current_id].prev_id;
         }
         // 对于该对象的每个副本，清除对应硬盘中的数据块
-        for (int j = 1; j <= REP_NUM; j++) {
+        for (int j = 1; j <= REP_NUM; j++)
+        {
             do_object_delete(object[id].unit[j], disk[object[id].replica[j]], object[id].size);
+            for (int k = 1; k <= object[id].size; k++)
+            { //**删除对象时候顺便把磁盘中相关的待读取单元都删了
+                if (disk_vector[object[id].replica[j]].count(disk[object[id].replica[j]][k]))
+                    disk_vector[object[id].replica[j]].erase(disk[object[id].replica[j]][k]);
+            }
+            disk_size[object[id].replica[j]] -= object[id].size; //**更新占用单元数
         }
+
         // 标记该对象已被删除
         object[id].is_delete = true;
     }
     fflush(stdout);
 }
 
-/*
- * 函数：do_object_write
- * 说明：辅助函数，将一个对象的所有对象块写入到硬盘中空闲的存储单元里。
- * 参数：
- *   object_unit - 数组，用于记录对象块写入的存储单元编号
- *   disk_unit   - 目标硬盘的存储单元数组
- *   size        - 对象块数量（即对象大小）
- *   object_id   - 当前写入的对象编号（写入标记）
- */
-void do_object_write(int* object_unit, int* disk_unit, int size, int object_id) {
-    int current_write_point = 0;  // 记录已写入的块数量
-    // 遍历硬盘所有存储单元（1 ~ V）
-    for (int i = 1; i <= V; i++) {
-        if (disk_unit[i] == 0) { // 如果该存储单元为空
-            disk_unit[i] = object_id;           // 写入对象ID作为标记
-            object_unit[++current_write_point] = i; // 记录写入的位置
-            if (current_write_point == size) {   // 如果已写满需要的块数，则结束
-                break;
-            }
-        }
-    }
-    // 如果未能写满 size 个块，则程序中止（确保数据完整写入）
-    assert(current_write_point == size);
-}
-
-/*
- * 函数：write_action
- * 说明：处理写入事件。为每个写入的对象生成三个副本，分别写入到不同的硬盘上。
- *       写入过程包括：分配内存、选取写入硬盘、调用 do_object_write 写入空闲存储单元，
- *       并输出写入结果（对象编号、各副本存储硬盘和具体写入的存储单元编号）。
- */
-void write_action() {
+void write_action()
+{
     int n_write; // 当前时间片写入请求数量
     scanf("%d", &n_write);
-    for (int i = 1; i <= n_write; i++) {
-        int id, size, tag;
-        // 读取对象编号和对象大小和对象标签
-        scanf("%d%d%d", &id, &size,&tag);
+    for (int i = 1; i <= n_write; i++)
+    {
+        int id, size;
+        // 读取对象编号和对象大小，%*d 表示忽略对象标签（或其他无用信息）
+        scanf("%d%d%*d", &id, &size);
         // 初始化该对象的请求链为空
         object[id].last_request_point = 0;
         // 为每个副本处理写入
-        for (int j = 1; j <= REP_NUM; j++) {
-            // 计算写入的硬盘编号，保证三个副本写入不同的硬盘
-            object[id].replica[j] = (id + j) % N + 1;
-            // 为该副本动态分配存储单元数组（大小为 size+1，索引从 1 开始）
-            object[id].unit[j] = static_cast<int*>(malloc(sizeof(int) * (size + 1)));
+        vector<array<int, 2>> vec_disk_size; //**暂时的，用于找到占用单元最少的磁盘
+
+        for (int j = 1; j <= N; j++)
+        {
+            vec_disk_size.push_back({disk_size[j], j});
+        }
+        sort(vec_disk_size.begin(), vec_disk_size.end());
+        for (int j = 0; j < 3; j++)
+        {
+            int disk_id = vec_disk_size[j][1];
+            disk_size[disk_id] += size; // 更新占用单元数
+            object[id].replica[j + 1] = disk_id;
+            object[id].unit[j + 1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
             object[id].size = size;
             object[id].is_delete = false;
-            // 将对象块写入对应硬盘
-            do_object_write(object[id].unit[j], disk[object[id].replica[j]], size, id);
+
+            int current_write_point = 0;
+            //**存放策略为把原块拆成size/2个大小为2的块和size%2个大小为1的块
+            //**把大小为2的块从前往后放，大小为1的块从后往前放
+            //**优点是减少碎片化，缺点是在同一个磁盘中，同一对象的不同块可能隔得很远
+            for (int i1 = 1; i1 <= V; i1++)
+            { // 放大小为2的块
+                if (current_write_point == size / 2 * 2)
+                    break;
+                if (disk[disk_id][i1] == 0)
+                {
+                    disk[disk_id][i1] = id;
+                    object[id].unit[j + 1][++current_write_point] = i1;
+                    disk_uid[disk_id][i1] = current_write_point;
+                    if (current_write_point == size / 2 * 2)
+                        break;
+                }
+            }
+            if (current_write_point < size)
+            {
+                for (int i1 = V; i1 >= 1; i1--)
+                { // 放大小为1的块
+                    if (disk[disk_id][i1] == 0)
+                    {
+                        disk[disk_id][i1] = id;
+                        ;
+                        object[id].unit[j + 1][++current_write_point] = i1;
+                        disk_uid[disk_id][i1] = current_write_point;
+                        if (current_write_point == size)
+                            break;
+                    }
+                }
+            }
         }
-        
+
         // 输出写入结果：先输出对象编号
         printf("%d\n", id);
         // 对于每个副本，输出硬盘编号和写入的存储单元位置
-        for (int j = 1; j <= REP_NUM; j++) {
+        for (int j = 1; j <= REP_NUM; j++)
+        {
             printf("%d ", object[id].replica[j]);
-            for (int k = 1; k <= size; k++) {
+            for (int k = 1; k <= size; k++)
+            {
                 printf(" %d", object[id].unit[j][k]);
             }
             printf("\n");
@@ -157,240 +169,208 @@ void write_action() {
     fflush(stdout);
 }
 
-/*
- * 以下全局变量用于读操作中的磁头调度和请求管理：
- *   vec       - 每个硬盘（下标 1~N）对应的请求队列
- *   Siz       - 每个硬盘累积的待处理对象大小，用于负载均衡
- *   dealing   - 当前正在处理的请求编号，按硬盘分开
- *   ptr       - 每个硬盘当前磁头所在的存储单元位置（指针）
- *   last_time - 每个硬盘上一次操作耗时，用于计算后续操作耗时
- */
-vector<int> vec[20];
-int Siz[20];
-int dealing[20];
 int ptr[20], last_time[20];
-
-/*
- * 函数：cal
- * 说明：辅助函数，计算磁头从当前位置到达请求中指定位置的时间花费
- *       并模拟磁头读取操作的过程。
- * 参数：
- *   pos       - 当前磁头位置（存储单元编号）
- *   rest      - 待读取的对象块位置列表（需要顺序读取的块）
- *   rest_time - 当前时间片中磁头剩余的令牌数
- *   pre_time  - 上一次操作耗时，用于计算当前读取操作的耗时
- * 返回值：一个数组 {timestamp, -rest_time}，
- *         timestamp 表示经过的时间片数，-rest_time 用于表示剩余令牌（负值表示多余的令牌）
- *
- * 注意：该函数使用暴力模拟，可能存在性能瓶颈，可以考虑优化调度策略。
- */
-array<int, 2> cal(int pos, vector<int> rest, int rest_time, int pre_time) {
+//**ptr代表第i个磁盘的指针在哪个单元，为了方便实现，它的值是0-V-1，实际位置是ptr[i]+1
+//**last_time表示第i个磁盘上个时间片最后一次操作的读取时间是多少，是为了跨时间片维护，如果该操作是移动，那就置为大值
+array<int, 2> cal(int pos, vector<int> rest, int rest_time, int pre_time)
+//**计算当前顺序下读取rest中所有单元所需时间是多少，这个函数在该版本代码中没有被使用到
+{ // 返回值第一位是花费时间片数，第二位是 -当前时间片剩余时间，即返回值越小越好
     int timestamp = 0;
-    while (true) {
-        while (rest_time) {
-            int to = rest.back();  // 待读取的目标存储单元（取最后一个元素）
+    while (true)
+    {
+        while (rest_time)
+        {
+            int to = rest.back();
             int dis = to - pos - 1;
-            if (dis < 0) dis += V; // 盘为环形排列，若差值为负则加上硬盘总容量
-            if (!dis) { // 磁头已到达目标位置
-                // 计算读取操作所消耗的令牌数：
-                // 第一次读取消耗 64，之后每次消耗为 max(16, ceil(0.8 * pre_time))
+            if (dis < 0)
+                dis += V;
+            if (!dis) // 针就在要读的位置
+            {
                 int cost_time = min(64, max(16, (int)(ceil(0.8 * pre_time) + 0.5)));
                 if (cost_time > rest_time)
-                    rest_time = 0; // 不足以完成读取，则剩余令牌置为0
-                else {
-                    rest_time -= cost_time;
-                    pos = (pos + 1) % V; // 读取后磁头移动到下一个存储单元
-                    pre_time = cost_time; // 更新本次读取耗时
-                    rest.pop_back();      // 移除已读取的块
-                }
-                // 如果所有块都读取完毕，返回模拟结果
-                if (rest.empty()) {
+                    rest_time = 0;
+                else
+                    rest_time -= cost_time, pos = (pos + 1) % V, pre_time = cost_time, rest.pop_back();
+                if (!rest.size())
+                {
                     return {timestamp, -rest_time};
                 }
             }
-            else if (dis <= rest_time) { // 剩余令牌足够走到目标位置
+            else if (dis <= rest_time) // 走过去够时间
+            {
                 rest_time -= dis;
-                while (dis--) {
+                while (dis--)
                     pos = (pos + 1) % V;
-                }
-                pre_time = 100; // 移动过程中采用默认耗时
+                pre_time = 100;
             }
-            else if (rest_time == G) { // 若剩余令牌正好等于初始最大令牌数，允许使用跳跃操作
+            else if (rest_time == G) // 可以跳过去
+            {
                 rest_time = 0;
                 pre_time = 100;
-                pos = to - 1; // 跳跃至目标位置前一个位置
+                pos = to - 1;
             }
-            else { // 令牌不足，走尽可能多的步数
-                while (rest_time--) {
+            else // 不能跳，还走不到，只能尽量走
+            {
+                while (rest_time--)
                     pos = (pos + 1) % V;
-                }
                 rest_time = 0;
                 pre_time = 100;
             }
         }
-        // 增加一个时间片，并重置剩余令牌为初始值 G
-        timestamp++;
-        rest_time = G;
+        timestamp++, rest_time = G;
     }
+    // rest_time越多越好，直接给负值，不考虑结果中pre_time对未来的影响了，有点复杂
+}
+int cal_min_dist(int disk_id, int to)
+//**计算 指针以及第disk_id个磁盘中所有待读单元 到to单元的最短距离
+//**神奇的贪心策略，但是很奇怪
+//**这个贪心没有干过 按磁盘待读取单元数多少去排序 的策略
+//**而且注释掉 if (disk_vector[disk_id].size())整个block后，本地测试结果完全没有变化（未交）
+{
+    int res = to - ptr[disk_id] - 1;
+    if (res < 0)
+        res += V;
+    if (disk_vector[disk_id].size())
+    {
+        int tmp;
+        auto it = disk_vector[disk_id].upper_bound(to);
+        if (it == disk_vector[disk_id].begin())
+            tmp = to - *prev(disk_vector[disk_id].end());
+        else
+            tmp = to - *prev(it);
+        if (tmp < 0)
+            tmp += V;
+        to = min(res, tmp);
+    }
+    return res;
+}
+int cal_to_pos(int disk_id, int pos) //**计算第disk_id个磁盘从第pos个单元出发下一个待读取单元在哪
+{
+    auto it = disk_vector[disk_id].lower_bound(pos);
+    if (it == disk_vector[disk_id].end())
+        return *disk_vector[disk_id].begin();
+    else
+        return *it;
 }
 
-/*
- * 函数：read_action
- * 说明：处理读取事件。读取每个请求的对象编号，将请求加入对应硬盘的调度队列，
- *       并根据当前各硬盘的状态规划磁头移动路径，最终输出各盘的动作序列和完成的读请求编号。
- */
-void read_action() {
+void read_action()
+{
     int n_read;
     int request_id, object_id;
-    // 读取当前时间片的读取请求数量
     scanf("%d", &n_read);
-    for (int i = 1; i <= n_read; i++) {
-        // 读取每个请求的编号和对象编号
+    for (int i = 1; i <= n_read; i++)
+    {
         scanf("%d%d", &request_id, &object_id);
-        // 将当前请求关联到该对象，并通过链表结构链接多个请求
         request[request_id].object_id = object_id;
         request[request_id].prev_id = object[object_id].last_request_point;
         object[object_id].last_request_point = request_id;
         request[request_id].is_done = false;
-        
-        // 在三个副本中选择一个负载较轻的硬盘进行读取
-        int d = 1;
-        for (int j = 1; j <= 3; j++) {
-            int mn = object[object_id].replica[d], now = object[object_id].replica[j];
-            if (Siz[mn] > Siz[now]) d = j;
+
+        for (int k = 1; k <= object[object_id].size; k++)
+        {
+            request[request_id].rest.insert(k);
+            int d = 1;
+            for (int j = 1; j <= 3; j++)
+            {
+                int mn = object[object_id].replica[d], now = object[object_id].replica[j];
+                // 第d个副本是当前最优的副本，第j个副本是现在的副本
+                // mn代表第d个副本对应的磁盘编号，now代表第j个
+                if (disk_vector[mn].size() > disk_vector[now].size())
+                    d = j; //**按待处理单元数判断磁盘优劣
+            }
+            int mn = object[object_id].replica[d];
+            disk_vector[mn].insert(object[object_id].unit[d][k]);    // 待处理单元放入磁盘容器
+            object[object_id].request[k].push_back({request_id, k}); // 这个vec存储该对象的第i个块与哪些请求相关，存的值是request_id
         }
-        int mn = object[object_id].replica[d];
-        // 将该请求加入选定硬盘的请求队列中
-        vec[mn].push_back(request_id);
-        Siz[mn] += object[object_id].size;
-        request[request_id].loc_id = d; // 记录该请求选择的副本索引
     }
 
-    // 存储本时间片完成读取的请求编号
-    vector<int> finish;
-    // 对每个硬盘依次处理其请求队列
-    for (int i = 1; i <= N; i++) {
-        int rest_time = G;      // 当前硬盘剩余令牌数，初始为 G
-        string res = "";        // 存储本时间片内磁头的动作序列（例如 "r", "p", "j ..."）
-        int pre_time = last_time[i]; // 上一次操作的耗时
-        if (!pre_time) pre_time = 100; // 如果没有上一次耗时，则默认值设为 100
+    vector<int> finish; // 此次完成的请求
+    for (int i = 1; i <= N; i++)
+    {
+        int rest_time = G;           // 当前时间片剩余时间
+        string res = "";             //**该磁盘在该时间片内的操作
+        int pre_time = last_time[i]; // 上次读取时间
+        if (!pre_time)
+            pre_time = 100; // 没有给last_time赋初始值，当它是0时说明之前没有用过
 
-        // 在本时间片内，尽可能利用剩余令牌处理请求
-        while (rest_time) {
-            // 如果当前没有正在处理的请求，则从队列中取出一个请求
-            if (!dealing[i]) {
-                if (!vec[i].empty()) {
-                    dealing[i] = vec[i].back();
-                    vec[i].pop_back();
-                    Siz[i] -= object[request[dealing[i]].object_id].size;
-                }
-                else break;
-            }
-            int x = dealing[i];
-            // 如果请求已完成或对应对象已被删除，则跳过该请求
-            if (request[x].is_done || object[request[x].object_id].is_delete) {
-                dealing[i] = 0;
-                continue;
-            }
-            // 如果当前请求还没有规划读取路径，则初始化路径
-            if (request[x].rest.empty()) {
-                // 将对象对应副本中的所有存储单元位置作为待读取位置
-                for (int j = 1; j <= object[request[x].object_id].size; j++)
-                    request[x].rest.push_back(object[request[x].object_id].unit[request[x].loc_id][j]);
-                // 反转路径，方便后续以栈的方式读取
-                reverse(request[x].rest.begin(), request[x].rest.end());
-                // 尝试优化读取顺序，枚举所有排列，选出花费最少的顺序
-                array<int, 2> cost_time = {10000000, 0};
-                vector<int> tmp_vec;
-                sort(request[x].rest.begin(), request[x].rest.end());
-                do {
-                    auto tmp_res = cal(ptr[i] + 1, request[x].rest, rest_time, pre_time);
-                    if (tmp_res < cost_time) {
-                        cost_time = tmp_res;
-                        tmp_vec.assign(request[x].rest.begin(), request[x].rest.end());
-                    }
-                } while (next_permutation(request[x].rest.begin(), request[x].rest.end()));
-                // 固定最佳读取顺序
-                request[x].rest.assign(tmp_vec.begin(), tmp_vec.end());
-            }
-            // 取出当前请求的下一个目标块
-            int to = request[x].rest.back();
-            int dis = to - ptr[i] - 1;
-            if (dis < 0) dis += V; // 考虑环形结构，调整距离
-            // 如果距离为0，表示磁头已在目标位置
-            if (!dis) {
-                int cost_time = min(64, max(16, (int)(ceil(0.8 * pre_time) + 0.5)));
+        while (rest_time)
+        {
+            if (!disk_vector[i].size())
+                break;                          // 这个磁盘没有待读的单元了就退出
+            int to = cal_to_pos(i, ptr[i] + 1); //**读取顺序策略是不管进入容器顺序，优先读取距离最近的
+            int dis = to - ptr[i] - 1;          // 距离目标单元的距离
+            if (dis < 0)
+                dis += V;
+            if (!dis) // 针就在要读的位置
+            {
+                int cost_time = min(64, max(16, (int)(ceil(0.8 * pre_time) + 0.5))); // 维护读取时间，+0.5纯多余
                 if (cost_time > rest_time)
-                    rest_time = 0;
-                else {
+                    rest_time = 0; // 不够时间读，又不能走，直接结束时间片
+                else
+                {
                     rest_time -= cost_time;
-                    res += "r";         // 执行读取动作，记为 'r'
-                    ptr[i] = (ptr[i] + 1) % V; // 读取后磁头移动
-                    pre_time = cost_time;
-                    request[x].rest.pop_back(); // 移除已读取的块
-                }
-            }
-            // 如果磁头到目标的距离小于或等于剩余令牌，则通过 "pass" 走到目标位置
-            else if (dis <= rest_time) {
-                rest_time -= dis;
-                for (int k = 0; k < dis; k++) {
-                    res += "p";       // 每一步记为 'p'
+                    res += "r";
                     ptr[i] = (ptr[i] + 1) % V;
+                    pre_time = cost_time;
+                    for (auto [request_id, uid] : object[disk[i][to]].request[disk_uid[i][to]]) // 更新相关请求
+                    {
+
+                        if (request[request_id].is_done)
+                            continue;
+                        if (!request[request_id].rest.count(uid))
+                            continue;
+                        request[request_id].rest.erase(uid);
+                        if (!request[request_id].rest.size()) //**该请求被完成
+                        {
+                            finish.push_back(request_id);
+                            request[request_id].is_done = true;
+                        }
+                    }
+                    vector<array<int, 2>>().swap(object[disk[i][to]].request[disk_uid[i][to]]); // 清空并释放空间
+                    disk_vector[i].erase(to);
                 }
-                pre_time = 100;
             }
-            // 如果剩余令牌正好为初始值 G，可以直接跳跃
-            else if (rest_time == G) {
-                res += "j " + to_string(to); // 'j' 指定跳跃到目标位置
+            else if (dis <= rest_time) // 走过去够时间
+            {
+                rest_time -= dis;
+                while (dis--)
+                    res += "p", ptr[i] = (ptr[i] + 1) % V;
+                pre_time = 100; // 上一次不是读取，直接赋值为大值
+            }
+            else if (rest_time == G) // 可以跳过去
+            {
+                res += "j " + to_string(to);
                 rest_time = 0;
                 pre_time = 100;
                 ptr[i] = to - 1;
             }
-            // 其他情况下，令牌不足，只能尽可能走动
-            else {
-                while (rest_time--) {
-                    res += "p";
-                    ptr[i] = (ptr[i] + 1) % V;
-                }
+            else // 不能跳，还走不到，只能尽量走
+            {
+                while (rest_time--)
+                    res += "p", ptr[i] = (ptr[i] + 1) % V;
                 rest_time = 0;
                 pre_time = 100;
             }
-            // 当该请求所有目标块都读取完毕后，标记整个请求链为完成，并记录已完成的请求编号
-            if (request[x].rest.empty()) {
-                int d = dealing[i];
-                dealing[i] = 0;
-                while (d) {
-                    if (request[d].is_done) break;
-                    request[d].is_done = true;
-                    if (!object[request[d].object_id].is_delete)
-                        finish.push_back(d);
-                    d = request[d].prev_id;
-                }
-            }
         }
-        // 记录当前硬盘上一次操作的耗时，便于后续计算
-        last_time[i] = pre_time;
-        // 如果动作序列为空或者没有跳跃动作，则在末尾添加结束标识符 '#'
-        if (res.empty() || res[0] != 'j') res += "#";
-        // 输出当前硬盘的磁头动作序列
-        cout << res << "\n";
+        last_time[i] = pre_time; // 更新
+        if (res[0] != 'j')
+            res += "#";
+        cout << res << '\n';
     }
-    // 输出本时间片内所有完成读取的请求数及其请求编号
-    cout << finish.size() << "\n";
+
+    cout << finish.size() << '\n';
     for (int v : finish)
-        cout << v << "\n";
+        cout << v << '\n';
+
     fflush(stdout);
 }
 
-/*
- * 函数：clean
- * 说明：释放所有对象写入过程中动态分配的内存，防止内存泄露。
- */
-void clean() {
-    // 遍历所有对象
-    for (auto &obj : object) {
-        // 对于每个副本，如果内存已经分配，则释放
-        for (int i = 1; i <= REP_NUM; i++) {
+void clean()
+{
+    for (auto &obj : object)
+    {
+        for (int i = 1; i <= REP_NUM; i++)
+        {
             if (obj.unit[i] == nullptr)
                 continue;
             free(obj.unit[i]);
