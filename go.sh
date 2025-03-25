@@ -8,3 +8,4 @@ cd ..
 # run test case
 python3 run.py ./interactor ./data/sample.in ./code_craft
 python3 run.py ./interactor ./data/sample_practice.in ./code_craft
+
