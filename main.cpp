@@ -345,6 +345,7 @@ void read_action()
         }
         last_time[i]=pre_time;
         if (res[0]!='j') res+="#";
+        
         cout<<res<<'\n';
     }    
 
