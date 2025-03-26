@@ -128,10 +128,13 @@ inline void write_single_rep1(int disk_id,int id,int rep_id){
     }
 }
 
+int tag_weights[MAX_LABLE];
+int total_tag_weights;
+
 //利用tag设置起点，根据奇偶指定方向
 inline void write_single_rep2(int disk_id,int id,int rep_id){
     int siz=object[id].size;
-    int start=(object[id].tag-1)*(V/M);
+    int start=ceil(tag_weights[object[id].tag-1]*((long double)V/total_tag_weights));
     int current_write_point = 0;
     if(object[id].tag&1){
         for (int i1 = start; i1 <= V+start-1; i1++)
@@ -159,17 +162,17 @@ inline void write_single_rep2(int disk_id,int id,int rep_id){
     }
 }
 
-const int weights[6]={0,1,1,2,3,4};
-int sum(int x){
+const int siz_weights[6]={0,1,1,2,3,4};
+int siz_sum(int x){
     int res=0;
-    for(int i=1;i<=x;++i)res+=weights[i];
+    for(int i=1;i<=x;++i)res+=siz_weights[i];
     return res;
 }
 // 如果object_size都一样则不会产生碎片，考虑按object_size分块设置起点
 inline void write_single_rep3(int disk_id,int id,int rep_id){
     int unit=V/10;
     int siz=object[id].size;
-    int start=sum(siz-1)*unit;
+    int start=siz_sum(siz-1)*unit;
     int current_write_point = 0;
     for (int i1 = start; i1 <= V+start-1; i1++)
     { 

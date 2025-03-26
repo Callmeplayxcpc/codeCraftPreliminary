@@ -3,6 +3,8 @@
 #include <cstdio>
 #include <cstdlib>
 
+int tag_read[20];
+
 int main()
 {
     // 读取全局参数
@@ -29,12 +31,21 @@ int main()
             scanf("%d", &fre_write[i][j]);
         }
     }
+    int total_read=0;
     for (int i = 1; i <= M; i++)
     {
         for (int j = 1; j <= (T - 1) / FRE_PER_SLICING + 1; j++)
         {
             scanf("%d", &fre_read[i][j]);
+            tag_read[i]+=fre_read[i][j];
+            total_read+=fre_read[i][j];
         }
+    }
+
+    for(int i=1;i<=M;++i){
+        tag_weights[i]=ceil(((long double)tag_read[i]/total_read)*1e6);
+        total_tag_weights+=tag_weights[i];
+        tag_weights[i]+=tag_weights[i-1];
     }
 
     // 输出预处理完成标志

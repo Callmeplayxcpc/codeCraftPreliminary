@@ -21,3 +21,6 @@ ok {"error_code":"interaction_successful","score":"4574579.7400","message":"Inte
 
 write_single_rep3_weighted
 ok {"error_code":"interaction_successful","score":"4823759.6225","message":"Interaction successful, score: 4823759.6225 (34.7931%), used: 29.2960s."}
+
+tag_usage_ver4
+ok {"error_code":"interaction_successful","score":"4781211.2375","message":"Interaction successful, score: 4781211.2375 (34.4862%), used: 28.1970s."}
