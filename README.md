@@ -11,3 +11,9 @@ go.sh 编译C++文件并生成可执行文件 然后调用python3运行执行器
 dabao.sh 打包压缩提交所需要的文件
 使用方法：./dabao.sh
 
+# 读策略：
+
+# 写策略：
+    write_single_rep1：顺序写入，奇数单独处理多出来的块
+    write_single_rep2：根据pre input的读取数量分布给每个tag分配对应大小的磁盘空间
+    write_single_rep3：给每个对象的siz一定权重，据此分配磁盘空间（目前较好）
