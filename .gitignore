@@ -2,3 +2,12 @@
 /output
 /提交代码
 /CMakeLists.txt
+/interactor
+/.gitignore
+/run.py
+/result.txt
+/dabao.sh
+/go.sh
+/.vscode
+/build
+/data

@@ -28,10 +28,7 @@ int main() {
     printf("OK\n");
     fflush(stdout);
 
-    // 初始化硬盘指针（起始位置）
-    for (int i = 1; i <= N; i++) {
-        disk_point[i] = 1;
-    }
+
 
     // 按时间片循环处理各类交互事件
     for (int t = 1; t <= T + EXTRA_TIME; t++) {
