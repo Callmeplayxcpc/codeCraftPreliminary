@@ -49,6 +49,7 @@ typedef struct Object_
     vector<array<int, 2>> request[5 + 1]; //**存储该对象的第i个块与哪些请求相关，存的值是request_id
     int size;
     int last_request_point; // 链式查询关于该对象的所有请求
+    int tag;
     bool is_delete;
 
 } Object;

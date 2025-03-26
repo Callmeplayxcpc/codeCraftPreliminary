@@ -1,6 +1,6 @@
 file(REMOVE_RECURSE
-  "/Users/haotianlyu/code_craft/code_craft"
-  "/Users/haotianlyu/code_craft/code_craft.pdb"
+  "../code_craft"
+  "../code_craft.pdb"
   "CMakeFiles/code_craft.dir/actions.cpp.o"
   "CMakeFiles/code_craft.dir/actions.cpp.o.d"
   "CMakeFiles/code_craft.dir/main.cpp.o"

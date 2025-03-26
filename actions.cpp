@@ -91,15 +91,71 @@ void delete_action()
     fflush(stdout);
 }
 
+//单个副本的写入策略
+inline void write_single_rep1(int disk_id,int id,int rep_id){
+    int siz=object[id].size;
+    int current_write_point = 0;
+    //**存放策略为把原块拆成size/2个大小为2的块和size%2个大小为1的块
+    //**把大小为2的块从前往后放，大小为1的块从后往前放
+    //**优点是减少碎片化，缺点是在同一个磁盘中，同一对象的不同块可能隔得很远
+    for (int i1 = 1; i1 <= V; i1++)
+    { // 放大小为2的块
+        if (current_write_point == siz / 2 * 2)
+            break;
+        if (disk[disk_id][i1] == 0)
+        {
+            disk[disk_id][i1] = id;
+            object[id].unit[rep_id][++current_write_point] = i1;
+            disk_uid[disk_id][i1] = current_write_point;
+            if (current_write_point == siz / 2 * 2)
+                break;
+        }
+    }
+    if (current_write_point < siz)
+    {
+        for (int i1 = V; i1 >= 1; i1--)
+        { // 放大小为1的块
+            if (disk[disk_id][i1] == 0)
+            {
+                disk[disk_id][i1] = id;
+                ;
+                object[id].unit[rep_id][++current_write_point] = i1;
+                disk_uid[disk_id][i1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+}
+
+//利用tag设置起点
+inline void write_single_rep2(int disk_id,int id,int rep_id){
+    int siz=object[id].size;
+    int start=(object[id].tag-1)*(V/M);
+    int current_write_point = 0;
+    for (int i1 = start; i1 <= V+start-1; i1++)
+    { 
+        if (disk[disk_id][i1%V+1] == 0)
+        {
+            disk[disk_id][i1%V+1] = id;
+            object[id].unit[rep_id][++current_write_point] = i1%V+1;
+            disk_uid[disk_id][i1%V+1] = current_write_point;
+            if(current_write_point==siz) break;
+        }
+    }
+}
+
+
 void write_action()
 {
     int n_write; // 当前时间片写入请求数量
     scanf("%d", &n_write);
     for (int i = 1; i <= n_write; i++)
     {
-        int id, size;
+        int id, size, tag;
         // 读取对象编号和对象大小，%*d 表示忽略对象标签（或其他无用信息）
-        scanf("%d%d%*d", &id, &size);
+        scanf("%d%d%*d", &id, &size, &tag);
+        object[id].tag = tag;
         // 初始化该对象的请求链为空
         object[id].last_request_point = 0;
         // 为每个副本处理写入
@@ -112,45 +168,13 @@ void write_action()
         sort(vec_disk_size.begin(), vec_disk_size.end());
         for (int j = 0; j < 3; j++)
         {
-            int disk_id = vec_disk_size[j][1];
+            int disk_id=vec_disk_size[j][1];
             disk_size[disk_id] += size; // 更新占用单元数
-            object[id].replica[j + 1] = disk_id;
-            object[id].unit[j + 1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
+            object[id].replica[j+1] = disk_id;
+            object[id].unit[j+1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
             object[id].size = size;
             object[id].is_delete = false;
-
-            int current_write_point = 0;
-            //**存放策略为把原块拆成size/2个大小为2的块和size%2个大小为1的块
-            //**把大小为2的块从前往后放，大小为1的块从后往前放
-            //**优点是减少碎片化，缺点是在同一个磁盘中，同一对象的不同块可能隔得很远
-            for (int i1 = 1; i1 <= V; i1++)
-            { // 放大小为2的块
-                if (current_write_point == size / 2 * 2)
-                    break;
-                if (disk[disk_id][i1] == 0)
-                {
-                    disk[disk_id][i1] = id;
-                    object[id].unit[j + 1][++current_write_point] = i1;
-                    disk_uid[disk_id][i1] = current_write_point;
-                    if (current_write_point == size / 2 * 2)
-                        break;
-                }
-            }
-            if (current_write_point < size)
-            {
-                for (int i1 = V; i1 >= 1; i1--)
-                { // 放大小为1的块
-                    if (disk[disk_id][i1] == 0)
-                    {
-                        disk[disk_id][i1] = id;
-                        ;
-                        object[id].unit[j + 1][++current_write_point] = i1;
-                        disk_uid[disk_id][i1] = current_write_point;
-                        if (current_write_point == size)
-                            break;
-                    }
-                }
-            }
+            write_single_rep2(disk_id,id,j+1);
         }
 
         // 输出写入结果：先输出对象编号
