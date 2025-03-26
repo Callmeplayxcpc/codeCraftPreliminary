@@ -18,5 +18,31 @@ add_executable(code_craft                   ${cur_src}) # ！！！不要修改 
 #    target_link_libraries(code_craft  pthread  rt  m)
 #endif (NOT WIN32)
 
-# 添加 -O3 优化选项
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+# 添加极致优化选项
+set(CMAKE_INTERPROCEDURAL_OPTIMIZATION TRUE)  # 启用 LTO
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
+-O3 \
+-flto \
+-march=native \
+-mtune=native \
+-ffast-math \
+-funsafe-math-optimizations \
+-fstrict-aliasing \
+-fomit-frame-pointer \
+-fno-exceptions \
+-fno-rtti \
+-fno-stack-protector \
+-fno-ident \
+-fmerge-all-constants \
+-fno-semantic-interposition \
+-frename-registers \
+-falign-functions=64 \
+-falign-jumps=64 \
+-falign-loops=64 \
+-falign-labels=64 \
+-DNDEBUG \
+-fuse-ld=lld")
+
+# 可选：开启 Unity Build（合并源文件，优化编译/链接/inline）
+set_target_properties(code_craft PROPERTIES UNITY_BUILD ON)
