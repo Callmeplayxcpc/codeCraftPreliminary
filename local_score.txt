@@ -9,3 +9,6 @@ ok {"error_code":"interaction_successful","score":"3819187.1225","message":"Inte
 tag_usage_ver2
 ok {"error_code":"interaction_successful","score":"6.4875","message":"Interaction successful, score: 6.4875 (81.0938%), used: 0.6600s."}
 ok {"error_code":"interaction_successful","score":"4621665.0125","message":"Interaction successful, score: 4621665.0125 (33.3354%), used: 29.3650s."}
+
+tag_usage_ver3
+ok {"error_code":"interaction_successful","score":"4469487.8450","message":"Interaction successful, score: 4469487.8450 (32.2378%), used: 27.8250s."}

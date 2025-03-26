@@ -133,18 +133,31 @@ inline void write_single_rep2(int disk_id,int id,int rep_id){
     int siz=object[id].size;
     int start=(object[id].tag-1)*(V/M);
     int current_write_point = 0;
-    for (int i1 = start; i1 <= V+start-1; i1++)
-    { 
-        if (disk[disk_id][i1%V+1] == 0)
-        {
-            disk[disk_id][i1%V+1] = id;
-            object[id].unit[rep_id][++current_write_point] = i1%V+1;
-            disk_uid[disk_id][i1%V+1] = current_write_point;
-            if(current_write_point==siz) break;
+    if(object[id].tag&1){
+        for (int i1 = start; i1 <= V+start-1; i1++)
+        { 
+            if (disk[disk_id][i1%V+1] == 0)
+            {
+                disk[disk_id][i1%V+1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1%V+1;
+                disk_uid[disk_id][i1%V+1] = current_write_point;
+                if(current_write_point==siz) break;
+            }
+        }
+    }
+    else{
+        for (int i1 = V+start-1; i1 >= start; --i1)
+        { 
+            if (disk[disk_id][i1%V+1] == 0)
+            {
+                disk[disk_id][i1%V+1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1%V+1;
+                disk_uid[disk_id][i1%V+1] = current_write_point;
+                if(current_write_point==siz) break;
+            }
         }
     }
 }
-
 
 void write_action()
 {
