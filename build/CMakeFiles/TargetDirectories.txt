@@ -1,3 +1,0 @@
-/home/llz/HuaweiCodeCraft/build/CMakeFiles/code_craft.dir
-/home/llz/HuaweiCodeCraft/build/CMakeFiles/edit_cache.dir
-/home/llz/HuaweiCodeCraft/build/CMakeFiles/rebuild_cache.dir

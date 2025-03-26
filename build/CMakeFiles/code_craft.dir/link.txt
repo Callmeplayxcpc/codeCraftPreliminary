@@ -1,1 +1,0 @@
-/usr/bin/g++  -O3 CMakeFiles/code_craft.dir/actions.cpp.o CMakeFiles/code_craft.dir/main.cpp.o CMakeFiles/code_craft.dir/storage.cpp.o -o ../code_craft 
