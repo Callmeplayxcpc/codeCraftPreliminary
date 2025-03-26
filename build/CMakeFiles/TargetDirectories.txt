@@ -1,3 +1,0 @@
-/Users/haotianlyu/code_craft/build/CMakeFiles/code_craft.dir
-/Users/haotianlyu/code_craft/build/CMakeFiles/edit_cache.dir
-/Users/haotianlyu/code_craft/build/CMakeFiles/rebuild_cache.dir

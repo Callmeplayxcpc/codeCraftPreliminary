@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 /main.exe
 /output
 /提交代码
@@ -11,3 +12,9 @@
 /.vscode
 /build
 /data
+=======
+data/
+repo-backup.git/
+interactor
+build
+>>>>>>> 20bfe46cfa08f9edd8ed9e3ca8ecb25bae6e4eaa
