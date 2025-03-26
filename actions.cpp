@@ -128,7 +128,7 @@ inline void write_single_rep1(int disk_id,int id,int rep_id){
     }
 }
 
-//利用tag设置起点
+//利用tag设置起点，根据奇偶指定方向
 inline void write_single_rep2(int disk_id,int id,int rep_id){
     int siz=object[id].size;
     int start=(object[id].tag-1)*(V/M);
@@ -155,6 +155,30 @@ inline void write_single_rep2(int disk_id,int id,int rep_id){
                 disk_uid[disk_id][i1%V+1] = current_write_point;
                 if(current_write_point==siz) break;
             }
+        }
+    }
+}
+
+const int weights[6]={0,1,1,2,3,4};
+int sum(int x){
+    int res=0;
+    for(int i=1;i<=x;++i)res+=weights[i];
+    return res;
+}
+// 如果object_size都一样则不会产生碎片，考虑按object_size分块设置起点
+inline void write_single_rep3(int disk_id,int id,int rep_id){
+    int unit=V/10;
+    int siz=object[id].size;
+    int start=sum(siz-1)*unit;
+    int current_write_point = 0;
+    for (int i1 = start; i1 <= V+start-1; i1++)
+    { 
+        if (disk[disk_id][i1%V+1] == 0)
+        {
+            disk[disk_id][i1%V+1] = id;
+            object[id].unit[rep_id][++current_write_point] = i1%V+1;
+            disk_uid[disk_id][i1%V+1] = current_write_point;
+            if(current_write_point==siz) break;
         }
     }
 }
@@ -187,7 +211,7 @@ void write_action()
             object[id].unit[j+1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
             object[id].size = size;
             object[id].is_delete = false;
-            write_single_rep2(disk_id,id,j+1);
+            write_single_rep3(disk_id,id,j+1);
         }
 
         // 输出写入结果：先输出对象编号

@@ -12,3 +12,12 @@ ok {"error_code":"interaction_successful","score":"4621665.0125","message":"Inte
 
 tag_usage_ver3
 ok {"error_code":"interaction_successful","score":"4469487.8450","message":"Interaction successful, score: 4469487.8450 (32.2378%), used: 27.8250s."}
+
+write_single_rep3
+ok {"error_code":"interaction_successful","score":"4636785.8325","message":"Interaction successful, score: 4636785.8325 (33.4445%), used: 30.4760s."}
+
+write_single_rep4
+ok {"error_code":"interaction_successful","score":"4574579.7400","message":"Interaction successful, score: 4574579.7400 (32.9958%), used: 29.9070s."}
+
+write_single_rep3_weighted
+ok {"error_code":"interaction_successful","score":"4823759.6225","message":"Interaction successful, score: 4823759.6225 (34.7931%), used: 29.2960s."}
