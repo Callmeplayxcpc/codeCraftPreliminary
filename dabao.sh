@@ -1,2 +1,2 @@
 #! /bin/bash
-zip code_craft.zip actions.cpp actions.h CMakeLists.txt main.cpp storage.cpp storage.h
+zip code_craft.zip CMakeLists.txt main.cpp actions.* storage.* clean.* delete.* read.* write.* timestamp.* 
