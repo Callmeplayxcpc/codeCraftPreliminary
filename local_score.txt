@@ -1,1 +1,7 @@
 ok {"error_code":"interaction_successful","score":"5394720.9550","message":"Interaction successful, score: 5394720.9550 (38.9114%), used: 75.2540s."}
+
+ok {"error_code":"interaction_successful","score":"7093485.8675","message":"Interaction successful, score: 7093485.8675 (51.1643%), used: 82.2150s."}
+
+ok {"error_code":"interaction_successful","score":"7766611.9700","message":"Interaction successful, score: 7766611.9700 (56.0195%), used: 77.8130s."}
+
+ok {"error_code":"interaction_successful","score":"8044319.7475","message":"Interaction successful, score: 8044319.7475 (58.0225%), used: 83.2900s."}

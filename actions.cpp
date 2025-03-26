@@ -29,7 +29,7 @@ void do_object_delete(const int *object_unit, int *disk_unit, int size)
 }
 
 set<int> disk_vector[20]; //**容器，存储每个硬盘的所有待读取单元
-int disk_size[20];        //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘
+int disk_size[20][20];        //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘
 void delete_action()
 {
     int n_delete;                   // 当前时间片需要删除的对象数量
@@ -83,7 +83,8 @@ void delete_action()
                 if (disk_vector[object[id].replica[j]].count(disk[object[id].replica[j]][k]))
                     disk_vector[object[id].replica[j]].erase(disk[object[id].replica[j]][k]);
             }
-            disk_size[object[id].replica[j]] -= object[id].size; //**更新占用单元数
+            disk_size[object[id].replica[j]][0] -= object[id].size; //**更新占用单元数
+            disk_size[object[id].replica[j]][object[id].tag] -= object[id].size;
         }
 
         // 标记该对象已被删除
@@ -96,6 +97,43 @@ const int siz_weights[6]={0,1,1,2,3,4};
 int siz_sum(int x){
     int res=0;
     for(int i=1;i<=x;++i)res+=siz_weights[i];
+    return res;
+}
+
+// 磁盘剩余空间大的优先
+array<int,3> select_disk1(int id){
+    // 为每个副本处理写入
+    vector<array<int,2> >vec_disk_size;//**暂时的，用于找到占用单元最少的磁盘
+    for (int j=1;j<=N;j++)
+    {
+        vec_disk_size.push_back({disk_size[j][0],j});
+    }
+    sort(vec_disk_size.begin(),vec_disk_size.end());
+    return {vec_disk_size[0][1],vec_disk_size[1][1],vec_disk_size[2][1]};
+}
+
+bool cmp(const array<int,2>& x,const array<int,2>& y){
+    if(x[0]==y[0])return disk_size[x[1]][0]<disk_size[y[1]][0];
+    return x[0]>y[0];
+}
+
+// 当前tag在磁盘中数量多的优先
+array<int,3> select_disk2(int id){
+    // 为每个副本处理写入
+    vector<array<int,2> >vec_disk_size;//**暂时的，用于找到占用单元最少的磁盘
+    for (int j=1;j<=N;j++)
+    {
+        vec_disk_size.push_back({disk_size[j][object[id].tag],j});
+    }
+    sort(vec_disk_size.begin(),vec_disk_size.end(),cmp);
+    int now=0,cnt=0;
+    array<int,3> res;
+    while(cnt<3){
+        assert(now<N);
+        int t=vec_disk_size[now][1];
+        if(V-disk_size[t][0]>=object[id].size)res[cnt]=t,cnt++;
+        now++;
+    }
     return res;
 }
 
@@ -143,21 +181,15 @@ void write_action() {
         // 初始化该对象的请求链为空
         object[id].last_request_point = 0;
         object[id].tag = tag;
-        // 为每个副本处理写入
-        vector<array<int,2> >vec_disk_size;//**暂时的，用于找到占用单元最少的磁盘
-
-        for (int j=1;j<=N;j++)
-        {
-            vec_disk_size.push_back({disk_size[j],j});
-        }
-        sort(vec_disk_size.begin(),vec_disk_size.end());
+        object[id].size = size;
+        auto dist_list=select_disk2(id);
         for (int j = 0; j <3; j++) 
         {
-            int disk_id=vec_disk_size[j][1];
-            disk_size[disk_id]+=size;//更新占用单元数
+            int disk_id=dist_list[j];
+            disk_size[disk_id][0]+=size;//更新占用单元数
+            disk_size[disk_id][tag]+=size;
             object[id].replica[j+1]=disk_id;
             object[id].unit[j+1] = static_cast<int*>(malloc(sizeof(int) * (size + 1)));
-            object[id].size = size;
             object[id].is_delete = false;
             write_single_rep2(disk_id,id,j+1);
         }
