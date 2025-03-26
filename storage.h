@@ -27,7 +27,7 @@ constexpr int MAX_OBJECT_NUM=100001;
 constexpr int REP_NUM=3;
 constexpr int FRE_PER_SLICING=1800;
 constexpr int EXTRA_TIME=105;
-
+constexpr int MAX_LABLE=20;
 
 using namespace std;
 
@@ -45,6 +45,7 @@ typedef struct Object_ {
     int* unit[REP_NUM + 1];//第i个副本的第j块存在哪个单元
     vector<array<int,2> >request[5+1];//**存储该对象的第i个块与哪些请求相关，存的值是request_id
     int size;
+    int tag;
     int last_request_point;//链式查询关于该对象的所有请求
     bool is_delete;
     
