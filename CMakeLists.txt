@@ -41,8 +41,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} \
 -falign-jumps=64 \
 -falign-loops=64 \
 -falign-labels=64 \
--DNDEBUG \
--fuse-ld=lld")
+-DNDEBUG ")
 
 # 可选：开启 Unity Build（合并源文件，优化编译/链接/inline）
 set_target_properties(code_craft PROPERTIES UNITY_BUILD ON)

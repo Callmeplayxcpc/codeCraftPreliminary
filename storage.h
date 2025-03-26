@@ -20,38 +20,34 @@
 // #define FRE_PER_SLICING (1800)
 // #define EXTRA_TIME (105)
 
-constexpr int MAX_DISK_NUM = 11;
-constexpr int MAX_DISK_SIZE = 16385;
-constexpr int MAX_REQUEST_NUM = 30000001;
-constexpr int MAX_OBJECT_NUM = 100001;
-constexpr int REP_NUM = 3;
-constexpr int FRE_PER_SLICING = 1800;
-constexpr int EXTRA_TIME = 105;
-constexpr int MAX_LABLE = 17;
-constexpr int DIV_1800 = (86400) / 1800 + 3;
+constexpr int MAX_DISK_NUM=11;
+constexpr int MAX_DISK_SIZE=16385;
+constexpr int MAX_REQUEST_NUM=30000001;
+constexpr int MAX_OBJECT_NUM=100001;
+constexpr int REP_NUM=3;
+constexpr int FRE_PER_SLICING=1800;
+constexpr int EXTRA_TIME=105;
+
 
 using namespace std;
 
 // 数据结构定义
-typedef struct Request_
-{
+typedef struct Request_ {
     int object_id;
-    int prev_id; // 链式绑定相同对象的请求
+    int prev_id;//链式绑定相同对象的请求
     bool is_done;
-    set<int> rest; //**该请求对应对象尚未被读取的块，（值为1，2，...，object.size）
+    set<int>rest;//**该请求对应对象尚未被读取的块，（值为1，2，...，object.size）
 
 } Request;
 
-typedef struct Object_
-{
-    int replica[REP_NUM + 1];             // 第i个副本的磁盘编号
-    int *unit[REP_NUM + 1];               // 第i个副本的第j块存在哪个单元
-    vector<array<int, 2>> request[5 + 1]; //**存储该对象的第i个块与哪些请求相关，存的值是request_id
+typedef struct Object_ {
+    int replica[REP_NUM + 1];//第i个副本的磁盘编号
+    int* unit[REP_NUM + 1];//第i个副本的第j块存在哪个单元
+    vector<array<int,2> >request[5+1];//**存储该对象的第i个块与哪些请求相关，存的值是request_id
     int size;
-    int last_request_point; // 链式查询关于该对象的所有请求
-    int tag;
+    int last_request_point;//链式查询关于该对象的所有请求
     bool is_delete;
-
+    
 } Object;
 
 // 全局变量声明
@@ -63,8 +59,5 @@ extern int disk[MAX_DISK_NUM][MAX_DISK_SIZE];
 //**下标意义与disk[][]完全一样，完全可以与disk合并为array<int,2>数组，
 //**其中存的值是第i块硬盘的第j个单元所存的块是这个块所属对象的第几个块
 extern int disk_uid[MAX_DISK_NUM][MAX_DISK_SIZE];
-extern int fre_del[MAX_LABLE][DIV_1800];
-extern int fre_write[MAX_LABLE][DIV_1800];
-extern int fre_read[MAX_LABLE][DIV_1800];
 
 #endif // STORAGE_H
