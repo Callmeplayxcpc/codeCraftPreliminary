@@ -27,6 +27,8 @@ constexpr int MAX_OBJECT_NUM=100001;
 constexpr int REP_NUM=3;
 constexpr int FRE_PER_SLICING=1800;
 constexpr int EXTRA_TIME=105;
+constexpr int LABEL_NUM=17;
+constexpr int LABEL_GROUP_NUM=53; //ceil(86400/1800)+5
 
 
 using namespace std;
@@ -47,6 +49,7 @@ typedef struct Object_ {
     int size;
     int last_request_point;//链式查询关于该对象的所有请求
     bool is_delete;
+    int label_id;
     
 } Object;
 

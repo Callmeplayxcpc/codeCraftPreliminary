@@ -10,17 +10,17 @@ int main() {
     // 全局预处理阶段：读取三个分块数据（删除、写入、读取的统计数据，此处用 %*d 跳过）
     for (int i = 1; i <= M; i++) {
         for (int j = 1; j <= (T - 1) / FRE_PER_SLICING + 1; j++) {
-            scanf("%*d");
+            scanf("%d",&fre_del[i][j]);
         }
     }
     for (int i = 1; i <= M; i++) {
         for (int j = 1; j <= (T - 1) / FRE_PER_SLICING + 1; j++) {
-            scanf("%*d");
+            scanf("%d",&fre_write[i][j]);
         }
     }
     for (int i = 1; i <= M; i++) {
         for (int j = 1; j <= (T - 1) / FRE_PER_SLICING + 1; j++) {
-            scanf("%*d");
+            scanf("%d",&fre_read[i][j]);
         }
     }
     

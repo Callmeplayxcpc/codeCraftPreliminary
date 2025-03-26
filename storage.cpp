@@ -9,3 +9,8 @@ int disk[MAX_DISK_NUM][MAX_DISK_SIZE];
 //**下标意义与disk[][]完全一样，完全可以与disk合并为array<int,2>数组，
 //**其中存的值是第i块硬盘的第j个单元所存的块是这个块所属对象的第几个块
 int disk_uid[MAX_DISK_NUM][MAX_DISK_SIZE];
+
+
+int fre_del[LABEL_NUM][LABEL_GROUP_NUM];
+int fre_write[LABEL_NUM][LABEL_GROUP_NUM];
+int fre_read[LABEL_NUM][LABEL_GROUP_NUM];
