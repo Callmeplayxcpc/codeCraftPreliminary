@@ -70,4 +70,6 @@ int tag_weights[MAX_LABLE];
 int total_tag_weights;
 // 利用tag设置起点，根据奇偶指定方向
 
+int timestamp;
+
 #endif // STORAGE_H
