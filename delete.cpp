@@ -70,6 +70,11 @@ void delete_action()
 
         // 标记该对象已被删除
         object[id].is_delete = true;
+
+        //维护磁盘中每个标签对象总数
+        tag_num[object[id].tag]-=object[id].size;
+        for (int ltn=object[id].tag;ltn<=M;ltn++) //ltn -> larger than and equal to now object.id 
+            tag_num[ltn]-=object[id].size;
     }
     fflush(stdout);
 }

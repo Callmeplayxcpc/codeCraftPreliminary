@@ -81,6 +81,53 @@ inline void write_single_rep2(int disk_id, int id, int rep_id)
     }
 }
 
+inline void write_single_rep3(int disk_id, int id, int rep_id)
+{
+    int siz = object[id].size;
+    total_object_num+=siz;
+    //维护前缀和数组
+    for (int ltn=object[id].tag;ltn<=M;ltn++) //ltn -> larger than and equal to now object.id 
+        tag_num[ltn]+=siz;
+
+    static int history_tag_num[20],history_total_object_num;
+    if (timestamp%FRE_PER_SLICING==1)
+    {
+        memcpy(history_tag_num,tag_num,sizeof history_tag_num);
+        history_total_object_num=total_object_num;
+    }
+
+    int start = ceil((long double)history_tag_num[object[id].tag-1] * V / history_total_object_num);
+    int current_write_point = 0;
+    if (object[id].tag & 1)
+    {
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+    else
+    {
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+}
+
 void write_action()
 {
     int n_write; // 当前时间片写入请求数量
@@ -103,7 +150,7 @@ void write_action()
             object[id].replica[j + 1] = disk_id;
             object[id].unit[j + 1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
             object[id].is_delete = false;
-            write_single_rep2(disk_id, id, j + 1);
+            write_single_rep3(disk_id, id, j + 1);
         }
 
         // 输出写入结果：先输出对象编号
