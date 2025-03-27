@@ -11,6 +11,6 @@ void read_action();
 void clean();
 
 extern int total_tag_weights;
-extern int tag_weights[MAX_LABLE];
+extern int tag_weights[MAX_LABEL];
 
 #endif // ACTIONS_H

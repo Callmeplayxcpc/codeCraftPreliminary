@@ -12,6 +12,27 @@
 
 void read_action()
 {
+    static vector<int> out_time_request[EXTRA_TIME];//存储超时请求
+    for (int request_id:out_time_request[timestamp%EXTRA_TIME])
+    {
+        int object_id=request[request_id].object_id;
+        for (int block_id:request[request_id].rest) 
+        {
+            if (object[object_id].request[block_id].count({request_id,block_id})) 
+                object[object_id].request[block_id].erase({request_id,block_id});
+            if (!object[object_id].request[block_id].size())
+            {
+                for (int copy_id=1;copy_id<=3;copy_id++)
+                {
+                    int disk_id=object[object_id].replica[copy_id];
+                    int unit_id=object[object_id].unit[copy_id][block_id];
+                    if (disk_vector[disk_id].count(unit_id)) 
+                        disk_vector[disk_id].erase(unit_id);
+                }
+            }       
+        }
+    }
+    vector<int>().swap(out_time_request[timestamp%EXTRA_TIME]);
 
     static int ptr[20], last_time[20];
     static pair<int, string> pass_read_dp[70][10]; //**当前时间片内已读取i个待读单元，已经连续读了j次，此时{剩余的最大令牌数，操作序列}
@@ -62,6 +83,7 @@ void read_action()
         request[request_id].prev_id = object[object_id].last_request_point;
         object[object_id].last_request_point = request_id;
         request[request_id].is_done = false;
+        out_time_request[timestamp%EXTRA_TIME].push_back(request_id);
 
         for (int k = 1; k <= object[object_id].size; k++)
         {
@@ -81,7 +103,7 @@ void read_action()
             }
             int mn = object[object_id].replica[d];
             disk_vector[mn].insert(object[object_id].unit[d][k]);    // 待处理单元放入磁盘容器
-            object[object_id].request[k].push_back({request_id, k}); // 这个vec存储该对象的第i个块与哪些请求相关，存的值是request_id
+            object[object_id].request[k].insert({request_id, k}); // 这个vec存储该对象的第i个块与哪些请求相关，存的值是request_id
         }
     }
 
@@ -186,7 +208,8 @@ void read_action()
                         request[request_id].is_done = true;
                     }
                 }
-                vector<array<int, 2>>().swap(object[disk[i][to]].request[disk_uid[i][to]]); // 清空并释放空间
+                
+                set<array<int, 2>>().swap(object[disk[i][to]].request[disk_uid[i][to]]); // 清空并释放空间
                 disk_vector[i].erase(to);
             }
             else

@@ -27,7 +27,7 @@ constexpr int MAX_OBJECT_NUM = 100001;
 constexpr int REP_NUM = 3;
 constexpr int FRE_PER_SLICING = 1800;
 constexpr int EXTRA_TIME = 105;
-constexpr int MAX_LABLE = 20;
+constexpr int MAX_LABEL = 20;
 
 using namespace std;
 
@@ -45,7 +45,7 @@ typedef struct Object_
 {
     int replica[REP_NUM + 1];             // 第i个副本的磁盘编号
     int *unit[REP_NUM + 1];               // 第i个副本的第j块存在哪个单元
-    vector<array<int, 2>> request[5 + 1]; //**存储该对象的第i个块与哪些请求相关，存的值是request_id
+    set<array<int, 2>> request[5 + 1]; //**存储该对象的第i个块与哪些请求相关，存的值是request_id
     int size;
     int tag;
     int last_request_point; // 链式查询关于该对象的所有请求
@@ -66,10 +66,13 @@ extern int disk_uid[MAX_DISK_NUM][MAX_DISK_SIZE];
 set<int> disk_vector[20]; //**容器，存储每个硬盘的所有待读取单元
 int disk_size[20][20];    //**存储磁盘的被占用单元数，因为写入策略是优先挑空闲空间大的磁盘
 
-int tag_weights[MAX_LABLE];
+int tag_weights[MAX_LABEL];
 int total_tag_weights;
 // 利用tag设置起点，根据奇偶指定方向
 
 int timestamp;
+
+int tag_num[MAX_LABEL];
+int total_object_num;
 
 #endif // STORAGE_H
