@@ -73,6 +73,14 @@ void read_action()
         return min(resL, resR);
     };
 
+    auto cal_weight=[&](int disk_id,int pos) //分数越高越好
+    {
+        static array<long double,2> weight_to_choose_disk={0.18,0};//前者越大则距离更重要，后者越大则任务数更重要
+        weight_to_choose_disk[1]=1-weight_to_choose_disk[0];
+        return -cal_min_near_dist(disk_id,pos)*weight_to_choose_disk[0]
+               -disk_vector[disk_id].size()*weight_to_choose_disk[1];
+    };
+
     int n_read;
     int request_id, object_id;
     scanf("%d", &n_read);
@@ -96,9 +104,9 @@ void read_action()
                 // mn代表第d个副本对应的磁盘编号，now代表第j个
                 int to1 = object[object_id].unit[d][k], to2 = object[object_id].unit[j][k];
 
-                int dis1 = cal_min_near_dist(mn, to1), dis2 = cal_min_near_dist(now, to2);
+                long double mask1 = cal_weight(mn, to1), mask2 = cal_weight(now, to2);
 
-                if (dis1 > dis2)
+                if (mask1 < mask2)
                     d = j; //**按最短距离判断磁盘优劣
             }
             int mn = object[object_id].replica[d];
@@ -221,6 +229,7 @@ void read_action()
                 res = best_option.second;
                 while (best_option.first-- && ptr[i] + 1 != to)
                     ptr[i] = (ptr[i] + 1) % V, res += 'p', last_time[i] = 0;
+                 
 
                 break;
             }
