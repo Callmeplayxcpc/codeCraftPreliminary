@@ -2,13 +2,34 @@
 #include "storage.h"
 #include <cstdio>
 #include <cstdlib>
+#include <iostream>
 
 int read_cnt[20];
+
+#ifndef A_VALUE
+#define A_VALUE 0.19//** 这里的值要在cmake指定 这里指定没用
+#endif
+
+#ifndef B_VALUE
+#define B_VALUE 0
+#endif
 
 int main()
 {
     // 读取全局参数
     scanf("%d%d%d%d%d", &T, &M, &N, &V, &G);
+
+    A=A_VALUE;
+    B=B_VALUE;
+
+    // 打印 A_VALUE 和 B_VALUE 来检查它们是否正确传递
+    //std::cerr << "A_VALUE: " << A_VALUE << std::endl;
+    //std::cerr << "B_VALUE: " << B_VALUE << std::endl;
+
+    double A = A_VALUE;
+    double B = B_VALUE;
+
+    std::cerr << "A=" << A << " B=" << B << std::endl;
 
     // 全局预处理阶段：读取三个分块数据（删除、写入、读取的统计数据，此处用 %*d 跳过）
     for (int i = 1; i <= M; i++)
@@ -55,5 +76,6 @@ int main()
         read_action();
     }
     clean();
+    
     return 0;
 }

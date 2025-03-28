@@ -73,9 +73,17 @@ void read_action()
         return min(resL, resR);
     };
 
-    auto cal_weight=[&](int disk_id,int pos) //分数越高越好
+    // auto cal_weight=[&](int disk_id,int pos)  //分数越高越好
+    // {
+    //     static array<long double,2> weight_to_choose_disk={0.18,0};//前者越大则距离更重要，后者越大则任务数更重要
+    //     weight_to_choose_disk[1]=1-weight_to_choose_disk[0];
+    //     return -cal_min_near_dist(disk_id,pos)*weight_to_choose_disk[0]
+    //            -disk_vector[disk_id].size()*weight_to_choose_disk[1];
+    // };
+
+    auto cal_weight=[&](int disk_id,int pos)  // test
     {
-        static array<long double,2> weight_to_choose_disk={0.18,0};//前者越大则距离更重要，后者越大则任务数更重要
+        static array<long double,2> weight_to_choose_disk={A,B};//前者越大则距离更重要，后者越大则任务数更重要
         weight_to_choose_disk[1]=1-weight_to_choose_disk[0];
         return -cal_min_near_dist(disk_id,pos)*weight_to_choose_disk[0]
                -disk_vector[disk_id].size()*weight_to_choose_disk[1];
