@@ -1,6 +1,7 @@
 #include "write.h"
 #include "storage.h"
 #include <cstdio>
+#include <iostream>
 #include <cstdlib>
 #include <vector>
 #include <array>
@@ -81,22 +82,22 @@ inline void write_single_rep2(int disk_id, int id, int rep_id)
     }
 }
 
-inline void write_single_rep3(int disk_id, int id, int rep_id)
+inline void write_single_rep4(int disk_id, int id, int rep_id)
 {
     int siz = object[id].size;
-    total_object_num+=siz;
-    //维护前缀和数组
-    for (int ltn=object[id].tag;ltn<=M;ltn++) //ltn -> larger than and equal to now object.id 
-        tag_num[ltn]+=siz;
+    total_object_num += siz;
+    // 维护前缀和数组
+    for (int ltn = object[id].tag; ltn <= M; ltn++) // ltn -> larger than and equal to now object.id
+        tag_num[ltn] += siz;
 
-    static int history_tag_num[20],history_total_object_num;
-    if (timestamp%FRE_PER_SLICING==1)
+    static int history_tag_num[20], history_total_object_num;
+    if (timestamp % FRE_PER_SLICING == 1)
     {
-        memcpy(history_tag_num,tag_num,sizeof history_tag_num);
-        history_total_object_num=total_object_num;
+        memcpy(history_tag_num, tag_num, sizeof history_tag_num);
+        history_total_object_num = total_object_num;
     }
 
-    int start = ceil((long double)history_tag_num[object[id].tag-1] * V / history_total_object_num);
+    int start = ceil((long double)history_tag_num[object[id].tag - 1] * V / history_total_object_num);
     int current_write_point = 0;
     if (object[id].tag & 1)
     {
@@ -114,6 +115,178 @@ inline void write_single_rep3(int disk_id, int id, int rep_id)
     }
     else
     {
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+}
+
+inline void write_single_rep5(int disk_id, int id, int rep_id)
+{
+    int siz = object[id].size;
+    int state = ceil((long double)timestamp / FRE_PER_SLICING);
+    int start = ceil((long double)fre_tag_num[object[id].tag - 1][state] * V / fre_total_num[state]);
+    int current_write_point = 0;
+    if (object[id].tag & 1)
+    {
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+    else
+    {
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+}
+
+inline void write_single_rep6(int disk_id, int id, int rep_id)
+{
+    int siz = object[id].size;
+    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);
+    int current_write_point = 0;
+    if (disk_id & 1)
+    {
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            if (current_write_point == siz / 2 * 2)
+                break;
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+            }
+        }
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            if (current_write_point == siz)
+                break;
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+            }
+        }
+    }
+    else
+    {
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            if (current_write_point == siz / 2 * 2)
+                break;
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+            }
+        }
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            if (current_write_point == siz)
+                break;
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+            }
+        }
+    }
+}
+
+inline void write_single_rep7(int disk_id, int id, int rep_id)
+{
+    int siz = object[id].size;
+    int start = ceil((long double)tag_weights[object[id].tag - 1] * V / total_tag_weights);
+    int current_write_point = 0;
+    if (object[id].tag & 1)
+    {
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            int free_units = 0;
+            for (; free_units < siz; free_units++)
+            {
+                if (disk[disk_id][(i1 + free_units) % V + 1])
+                    break;
+            }
+            if (free_units == siz)
+            {
+                for (;; i1++)
+                {
+                    disk[disk_id][i1 % V + 1] = id;
+                    object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                    disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                    if (current_write_point == siz)
+                        break;
+                }
+       
+                return;
+            }
+            
+        }
+        for (int i1 = start; i1 <= V + start - 1; i1++)
+        {
+            int free_units = 0;
+            if (disk[disk_id][i1 % V + 1] == 0)
+            {
+                disk[disk_id][i1 % V + 1] = id;
+                object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                if (current_write_point == siz)
+                    break;
+            }
+        }
+    }
+    else
+    {
+        for (int i1 = V + start - 1; i1 >= start; --i1)
+        {
+            int free_units = 0;
+            for (; free_units < siz; free_units++)
+            {
+                if (disk[disk_id][(i1 - free_units + V) % V + 1]) break;
+            }
+            if (free_units == siz)
+            {
+                i1 += V;
+                for (;; --i1)
+                {
+                    disk[disk_id][i1 % V + 1] = id;
+                    object[id].unit[rep_id][++current_write_point] = i1 % V + 1;
+                    disk_uid[disk_id][i1 % V + 1] = current_write_point;
+                    if (current_write_point == siz) break;
+                }
+                return;
+            }
+        }
         for (int i1 = V + start - 1; i1 >= start; --i1)
         {
             if (disk[disk_id][i1 % V + 1] == 0)
@@ -150,7 +323,7 @@ void write_action()
             object[id].replica[j + 1] = disk_id;
             object[id].unit[j + 1] = static_cast<int *>(malloc(sizeof(int) * (size + 1)));
             object[id].is_delete = false;
-            write_single_rep3(disk_id, id, j + 1);
+            write_single_rep7(disk_id, id, j + 1);
         }
 
         // 输出写入结果：先输出对象编号
