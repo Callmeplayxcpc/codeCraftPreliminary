@@ -1,0 +1,22 @@
+Running test with A=0.0 and B=1.0
+ok {"error_code":"interaction_successful","score":"6708734.6100","message":"Interaction successful, score: 6708734.6100 (48.4469%), used: 24.2460s."}
+Running test with A=0.1 and B=0.9
+ok {"error_code":"interaction_successful","score":"7792724.5525","message":"Interaction successful, score: 7792724.5525 (56.2748%), used: 25.5270s."}
+Running test with A=0.2 and B=0.8
+ok {"error_code":"interaction_successful","score":"7875318.0125","message":"Interaction successful, score: 7875318.0125 (56.8713%), used: 28.5220s."}
+Running test with A=0.3 and B=0.7
+ok {"error_code":"interaction_successful","score":"7855947.0275","message":"Interaction successful, score: 7855947.0275 (56.7314%), used: 25.9460s."}
+Running test with A=0.4 and B=0.6
+ok {"error_code":"interaction_successful","score":"7880366.3350","message":"Interaction successful, score: 7880366.3350 (56.9077%), used: 25.2030s."}
+Running test with A=0.5 and B=0.5
+ok {"error_code":"interaction_successful","score":"7862777.9350","message":"Interaction successful, score: 7862777.9350 (56.7807%), used: 25.1390s."}
+Running test with A=0.6 and B=0.4
+ok {"error_code":"interaction_successful","score":"7839616.2325","message":"Interaction successful, score: 7839616.2325 (56.6135%), used: 24.6250s."}
+Running test with A=0.7 and B=0.3
+ok {"error_code":"interaction_successful","score":"7814689.7500","message":"Interaction successful, score: 7814689.7500 (56.4335%), used: 31.4070s."}
+Running test with A=0.8 and B=0.2
+ok {"error_code":"interaction_successful","score":"7822930.9350","message":"Interaction successful, score: 7822930.9350 (56.4930%), used: 25.3590s."}
+Running test with A=0.9 and B=0.1
+ok {"error_code":"interaction_successful","score":"7780543.8100","message":"Interaction successful, score: 7780543.8100 (56.1869%), used: 32.0540s."}
+Running test with A=1.0 and B=0.0
+ok {"error_code":"interaction_successful","score":"7688418.3850","message":"Interaction successful, score: 7688418.3850 (55.5216%), used: 25.3700s."}

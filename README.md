@@ -17,3 +17,22 @@ dabao.sh 打包压缩提交所需要的文件
     write_single_rep1：顺序写入，奇数单独处理多出来的块
     write_single_rep2：根据pre input的读取数量分布给每个tag分配对应大小的磁盘空间
     write_single_rep3：给每个对象的siz一定权重，据此分配磁盘空间（目前较好）
+    
+## test_parameter.sh使用说明
+
+./test_parameter.sh 即可使用 循环A 找到最优的A B策略
+输出会重定向到output_log.txt 出来之后丢给gpt分析叫他找最优就行
+
+若要提交或其他方法测试：
+A B的值不再由main.cpp决定 而是编译时期由CMake决定
+找到如下代码修改就行
+```cpp
+# 设置 A_VALUE 和 B_VALUE 的默认值
+if(NOT DEFINED A_VALUE)
+    set(A_VALUE 0.18)  # 默认值
+endif()
+
+if(NOT DEFINED B_VALUE)
+    set(B_VALUE 0)  # 默认值
+endif()
+```

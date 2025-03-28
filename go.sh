@@ -10,5 +10,7 @@ cd ..
 
 # run test case
 python3 run.py ./interactor ./data/sample.in ./code_craft
-python3 run.py ./interactor ./data/sample_practice.in ./code_craft
-python3 run.py ./interactor ./data/sample_extra.in ./code_craft
+# python3 run.py ./interactor ./data/sample_practice.in ./code_craft
+# python3 run.py ./interactor ./data/sample_extra.in ./code_craft
+# python3 run.py ./interactor ./data/practice.in ./code_craft
+python3 run.py ./interactor ./data/sample_official.in ./code_craft
