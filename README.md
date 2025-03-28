@@ -24,7 +24,7 @@ dabao.sh 打包压缩提交所需要的文件
 输出会重定向到output_log.txt 出来之后丢给gpt分析叫他找最优就行
 
 若要提交或其他方法测试：
-A B的值不再由main.cpp决定 而是编译时间由CMake决定
+A B的值不再由main.cpp决定 而是编译时期由CMake决定
 找到如下代码修改就行
 ```cpp
 # 设置 A_VALUE 和 B_VALUE 的默认值
